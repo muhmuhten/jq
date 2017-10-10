@@ -229,8 +229,7 @@ static jv default_search(jq_state *jq, jv value) {
 }
 
 // XXX Split this into a util that takes a callback, and then...
-static int process_dependencies(jq_state *jq, jv jq_origin, jv lib_origin, block *src_block, struct lib_loading_state *lib_state) {
-  jv deps = block_take_imports(src_block);
+static int process_dependencies(jq_state *jq, jv jq_origin, jv lib_origin, jv deps, block *src_block, struct lib_loading_state *lib_state) {
   block bk = *src_block;
   int nerrors = 0;
   const char *as_str = NULL;
@@ -289,6 +288,11 @@ static int process_dependencies(jq_state *jq, jv jq_origin, jv lib_origin, block
   return nerrors;
 }
 
+static int process_block_dependencies(jq_state *jq, jv jq_origin, jv lib_origin, block *src_block, struct lib_loading_state *lib_state) {
+  jv deps = block_take_imports(src_block);
+  return process_dependencies(jq, jq_origin, lib_origin, deps, src_block, lib_state);
+}
+
 // Loads the library at lib_path into lib_state, putting the library's defs
 // into *out_block
 static int load_library(jq_state *jq, jv lib_path, int is_data, int raw, const char *as, block *out_block, struct lib_loading_state *lib_state) {
@@ -318,7 +322,7 @@ static int load_library(jq_state *jq, jv lib_path, int is_data, int raw, const c
     nerrors += jq_parse_library(src, &program);
     if (nerrors == 0) {
       char *lib_origin = strdup(jv_string_value(lib_path));
-      nerrors += process_dependencies(jq, jq_get_jq_origin(jq),
+      nerrors += process_block_dependencies(jq, jq_get_jq_origin(jq),
                                       jv_string(dirname(lib_origin)),
                                       &program, lib_state);
       free(lib_origin);
@@ -373,7 +377,8 @@ int load_program(jq_state *jq, struct locfile* src, block *out_block) {
   if (nerrors)
     return nerrors;
 
-  nerrors = process_dependencies(jq, jq_get_jq_origin(jq), jq_get_prog_origin(jq), &program, &lib_state);
+  nerrors += process_dependencies(jq, jq_get_jq_origin(jq), jq_get_prog_origin(jq), jq_get_attr(jq, jv_string("JQ_LIBRARY_PRELOAD")), &program, &lib_state);
+  nerrors += process_block_dependencies(jq, jq_get_jq_origin(jq), jq_get_prog_origin(jq), &program, &lib_state);
   block libs = gen_noop();
   for (uint64_t i = 0; i < lib_state.ct; ++i) {
     free(lib_state.names[i]);
