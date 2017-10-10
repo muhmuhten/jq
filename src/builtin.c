@@ -1782,7 +1782,7 @@ static int slurp_lib(jq_state *jq, block* bb) {
   int nerrors = 0;
   char* home = getenv("HOME");
   if (home) {    // silently ignore no $HOME
-    jv filename = jv_string_append_str(jv_string(home), "/.jq");
+    jv filename = jv_string_append_str(jv_string(home), "/.jq/init.jq");
     jv data = jv_load_file(jv_string_value(filename), 1);
     if (jv_is_valid(data)) {
       nerrors = builtins_bind_one(jq, bb, jv_string_value(data) );
