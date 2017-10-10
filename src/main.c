@@ -304,6 +304,7 @@ int main(int argc, char* argv[]) {
   int jq_flags = 0;
   size_t short_opts = 0;
   jv lib_search_paths = jv_null();
+  jv lib_preloads = jv_array();
   for (int i=1; i<argc; i++, short_opts = 0) {
     if (args_done) {
       if (further_args_are_strings) {
@@ -343,6 +344,20 @@ int main(int argc, char* argv[]) {
           lib_search_paths = jv_array_append(lib_search_paths, jq_realpath(jv_string(argv[i+1])));
           i++;
         }
+        continue;
+      }
+      if (argv[i][1] == 'l') {
+        const char *relpath;
+        if (argv[i][2] != 0) {
+          relpath = argv[i]+2;
+        } else if (i >= argc-1) {
+          fprintf(stderr, "-l takes a parameter\n");
+          die();
+        } else {
+          relpath = argv[i+1];
+          i++;
+        }
+        lib_preloads = jv_array_append(lib_preloads, JV_OBJECT(jv_string("relpath"), jv_string(relpath)));
         continue;
       }
 
@@ -573,6 +588,7 @@ int main(int argc, char* argv[]) {
                                 jv_string("$ORIGIN/lib"));
   }
   jq_set_attr(jq, jv_string("JQ_LIBRARY_PATH"), lib_search_paths);
+  jq_set_attr(jq, jv_string("JQ_LIBRARY_PRELOAD"), lib_preloads);
 
   char *origin = strdup(argv[0]);
   if (origin == NULL) {
