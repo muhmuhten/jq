@@ -232,9 +232,9 @@ static jv default_search(jq_state *jq, jv value) {
 static int process_dependencies(jq_state *jq, jv jq_origin, jv lib_origin, jv deps, block *src_block, struct lib_loading_state *lib_state) {
   block bk = *src_block;
   int nerrors = 0;
-  const char *as_str = NULL;
 
   jv_array_foreach(deps, i, dep) {
+    const char *as_str = NULL;
     int is_data = jv_get_kind(jv_object_get(jv_copy(dep), jv_string("is_data"))) == JV_KIND_TRUE;
     int raw = 0;
     jv v = jv_object_get(jv_copy(dep), jv_string("raw"));
