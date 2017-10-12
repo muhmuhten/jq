@@ -277,7 +277,7 @@ static int process_dependencies(jq_state *jq, jv jq_origin, jv lib_origin, jv de
       // resolved has been freed
       if (nerrors == 0) {
         // Bind the library to the program
-        bk = block_bind_library(dep_def_block, bk, OP_IS_CALL_PSEUDO, as_str);
+        bk = block_bind_library(dep_def_block, bk, OP_IS_CALL_PSEUDO, is_data ? NULL : as_str);
       }
     }
     jv_free(as);
