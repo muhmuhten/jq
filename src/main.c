@@ -385,9 +385,9 @@ int main(int argc, char* argv[]) {
         options |= ASCII_OUTPUT;
         if (!short_opts) continue;
       }
-      if (isoption(argv[i], 0, "unbuffered", &short_opts)) {
+      if (isoption(argv[i], 'u', "unbuffered", &short_opts)) {
         options |= UNBUFFERED_OUTPUT;
-        continue;
+        if (!short_opts) continue;
       }
       if (isoption(argv[i], 'S', "sort-keys", &short_opts)) {
         options |= SORTED_OUTPUT;
@@ -409,10 +409,10 @@ int main(int argc, char* argv[]) {
         options |= RAW_OUTPUT | RAW_NO_LF;
         if (!short_opts) continue;
       }
-      if (isoption(argv[i], 0, "tab", &short_opts)) {
+      if (isoption(argv[i], 't', "tab", &short_opts)) {
         dumpopts &= ~JV_PRINT_INDENT_FLAGS(7);
         dumpopts |= JV_PRINT_TAB | JV_PRINT_PRETTY;
-        continue;
+        if (!short_opts) continue;
       }
       if (isoption(argv[i], 0, "indent", &short_opts)) {
         if (i >= argc - 1) {
@@ -446,10 +446,10 @@ int main(int argc, char* argv[]) {
         if (!short_opts) continue;
       }
       // FIXME: For --arg* we should check that the varname is acceptable
-      if (isoption(argv[i], 0, "args", &short_opts)) {
+      if (isoption(argv[i], 'A', "args", &short_opts)) {
         further_args_are_strings = 1;
         further_args_are_json = 0;
-        continue;
+        if (!short_opts) continue;
       }
       if (isoption(argv[i], 0, "jsonargs", &short_opts)) {
         further_args_are_strings = 0;
