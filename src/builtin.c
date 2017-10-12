@@ -1175,6 +1175,14 @@ static jv f_slurpfile(jq_state *jq, jv input) {
   return jv_load_file(jv_string_value(input), 1);
 }
 
+static jv f_slurpjson(jq_state *jq, jv input) {
+  if (jv_get_kind(input) != JV_KIND_STRING) {
+    jv_free(input);
+    return jv_invalid_with_msg(jv_string("slurpjson input jsonname must be a string"));
+  }
+  return jv_load_file(jv_string_value(input), 0);
+}
+
 static jv tm2jv(struct tm *tm) {
   return JV_ARRAY(jv_number(tm->tm_year + 1900),
                   jv_number(tm->tm_mon),
@@ -1626,6 +1634,7 @@ static const struct cfunction function_list[] = {
   {(cfunction_ptr)f_debug, "debug", 1},
   {(cfunction_ptr)f_stderr, "stderr", 1},
   {(cfunction_ptr)f_slurpfile, "_slurpfile", 1},
+  {(cfunction_ptr)f_slurpjson, "_slurpjson", 1},
   {(cfunction_ptr)f_strptime, "strptime", 2},
   {(cfunction_ptr)f_strftime, "strftime", 2},
   {(cfunction_ptr)f_strflocaltime, "strflocaltime", 2},
