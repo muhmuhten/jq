@@ -1175,6 +1175,16 @@ static jv f_slurpfile(jq_state *jq, jv input) {
   return jv_load_file(jv_string_value(input), 1);
 }
 
+static jv f_system(jq_state *jq, jv input) {
+  if (jv_get_kind(input) != JV_KIND_STRING) {
+    jv_free(input);
+    return jv_invalid_with_msg(jv_string("system input filename must be a string"));
+  }
+  int status = system(jv_string_value(input));
+  jv_free(input);
+  return jv_number(status);
+}
+
 static jv f_slurpjson(jq_state *jq, jv input) {
   if (jv_get_kind(input) != JV_KIND_STRING) {
     jv_free(input);
@@ -1635,6 +1645,7 @@ static const struct cfunction function_list[] = {
   {(cfunction_ptr)f_stderr, "stderr", 1},
   {(cfunction_ptr)f_slurpfile, "_slurpfile", 1},
   {(cfunction_ptr)f_slurpjson, "_slurpjson", 1},
+  {(cfunction_ptr)f_system, "_system", 1},
   {(cfunction_ptr)f_strptime, "strptime", 2},
   {(cfunction_ptr)f_strftime, "strftime", 2},
   {(cfunction_ptr)f_strflocaltime, "strflocaltime", 2},
