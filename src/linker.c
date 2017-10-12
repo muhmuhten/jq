@@ -242,6 +242,7 @@ static int process_dependencies(jq_state *jq, jv jq_origin, jv lib_origin, jv de
   jv_array_foreach(deps, i, dep) {
     const char *as_str = NULL;
     int is_data = jv_get_kind(jv_object_get(jv_copy(dep), jv_string("is_data"))) == JV_KIND_TRUE;
+    const char *ext_str = is_data ? ".json" : ".jq";
     int raw = 0;
     jv v = jv_object_get(jv_copy(dep), jv_string("raw"));
     if (jv_get_kind(v) == JV_KIND_TRUE)
@@ -256,10 +257,13 @@ static int process_dependencies(jq_state *jq, jv jq_origin, jv lib_origin, jv de
     if (jv_get_kind(as) == JV_KIND_STRING)
       as_str = jv_string_value(as);
     jv search = default_search(jq, jv_object_get(dep, jv_string("search")));
+    jv ext = jv_object_get(jv_copy(dep), jv_string("ext"));
+    if (jv_get_kind(ext) == JV_KIND_STRING)
+      ext_str = jv_string_value(ext);
     // dep is now freed; do not reuse
 
     // find_lib does a lot of work that could be cached...
-    jv resolved = find_lib(jq, relpath, search, is_data ? ".json" : ".jq", jv_copy(jq_origin), jv_copy(lib_origin));
+    jv resolved = find_lib(jq, relpath, search, ext_str, jv_copy(jq_origin), jv_copy(lib_origin));
     // XXX ...move the rest of this into a callback.
     if (!jv_is_valid(resolved)) {
       jv_free(as);
