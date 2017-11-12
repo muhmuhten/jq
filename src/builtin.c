@@ -1153,12 +1153,12 @@ static jv f_input(jq_state *jq, jv input) {
   return jv_invalid_with_msg(jv_string("break"));
 }
 
-static jv f_debug(jq_state *jq, jv input) {
+static jv f_debug(jq_state *jq, jv input, jv a) {
   jq_msg_cb cb;
   void *data;
   jq_get_debug_cb(jq, &cb, &data);
   if (cb != NULL)
-    cb(data, jv_copy(input));
+    cb(data, a);
   return input;
 }
 
@@ -1641,7 +1641,7 @@ static const struct cfunction function_list[] = {
   {(cfunction_ptr)f_match, "_match_impl", 4},
   {(cfunction_ptr)f_modulemeta, "modulemeta", 1},
   {(cfunction_ptr)f_input, "_input", 1},
-  {(cfunction_ptr)f_debug, "debug", 1},
+  {(cfunction_ptr)f_debug, "debug", 2},
   {(cfunction_ptr)f_stderr, "stderr", 1},
   {(cfunction_ptr)f_slurpfile, "_slurpfile", 1},
   {(cfunction_ptr)f_slurpjson, "_slurpjson", 1},
