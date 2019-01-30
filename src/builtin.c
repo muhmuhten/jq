@@ -1438,7 +1438,7 @@ static jv f_mktime(jq_state *jq, jv a) {
   struct tm tm;
   if (!jv2tm(a, &tm))
     return jv_invalid_with_msg(jv_string("mktime requires parsed datetime inputs"));
-  time_t t = my_timegm(&tm);
+  time_t t = my_mktime(&tm);
   if (t == (time_t)-1)
     return jv_invalid_with_msg(jv_string("invalid gmtime representation"));
   if (t == (time_t)-2)
