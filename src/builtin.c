@@ -34,6 +34,9 @@ void *alloca (size_t);
 #endif
 #include <string.h>
 #include <time.h>
+#ifdef WIN32
+#include <windows.h>
+#endif
 #include "builtin.h"
 #include "compile.h"
 #include "jq_parser.h"
@@ -1212,6 +1215,27 @@ static jv tm2jv(struct tm *tm) {
                   jv_number(tm->tm_yday));
 }
 
+#if defined(WIN32) && !defined(HAVE_SETENV)
+static int setenv(const char *var, const char *val, int ovr)
+{
+  BOOL b;
+  char c[2];
+  if (!ovr)
+  {
+    DWORD d;
+    d = GetEnvironmentVariableA (var, c, 2);
+    if (0 != d && GetLastError () != ERROR_ENVVAR_NOT_FOUND) {
+      return d;
+    }
+  }
+  b = SetEnvironmentVariableA (var, val);
+  if (b) {
+    return 0;
+  }
+  return 1;
+}
+#endif
+
 /*
  * mktime() has side-effects and anyways, returns time in the local
  * timezone, not UTC.  We want timegm(), which isn't standard.
@@ -1227,10 +1251,21 @@ static jv tm2jv(struct tm *tm) {
  *
  * Returns (time_t)-2 if mktime()'s side-effects cannot be corrected.
  */
-static time_t my_timegm(struct tm *tm) {
+static time_t my_mktime(struct tm *tm) {
 #ifdef HAVE_TIMEGM
   return timegm(tm);
-#else /* HAVE_TIMEGM */
+#elif HAVE_TM_TM_GMT_OFF
+
+  time_t t = mktime(tm);
+  if (t == (time_t)-1)
+    return t;
+  return t + tm->tm_gmtoff;
+#elif HAVE_TM___TM_GMT_OFF
+  time_t t = mktime(tm);
+  if (t == (time_t)-1)
+    return t;
+  return t + tm->__tm_gmtoff;
+#else
   char *tz;
 
   tz = (tz = getenv("TZ")) != NULL ? strdup(tz) : NULL;
@@ -1240,18 +1275,6 @@ static time_t my_timegm(struct tm *tm) {
   if (tz != NULL)
     setenv("TZ", tz, 1);
   return t;
-#endif /* !HAVE_TIMEGM */
-}
-static time_t my_mktime(struct tm *tm) {
-  time_t t = mktime(tm);
-  if (t == (time_t)-1)
-    return t;
-#ifdef HAVE_TM_TM_GMT_OFF
-  return t + tm->tm_gmtoff;
-#elif HAVE_TM___TM_GMT_OFF
-  return t + tm->__tm_gmtoff;
-#else
-  return (time_t)-2; /* Not supported */
 #endif
 }
 

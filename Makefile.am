@@ -52,6 +52,7 @@ libjq_la_LDFLAGS = $(onig_LDFLAGS) -export-symbols-regex '^j[qv]_' -version-info
 
 if WIN32
 libjq_la_LIBADD += -lshlwapi
+libjq_la_LDFLAGS += -no-undefined
 endif
 
 include_HEADERS = src/jv.h src/jq.h
@@ -59,6 +60,8 @@ include_HEADERS = src/jv.h src/jq.h
 if ENABLE_UBSAN
 AM_CFLAGS += -fsanitize=undefined
 endif
+
+AM_CPPFLAGS = -I$(srcdir)/src
 
 ### Running tests under Valgrind
 
@@ -97,10 +100,12 @@ generate_ver = ver="`{ $(srcdir)/scripts/version || echo '$(VERSION)' ; } | sed 
 .remake-version-h: .FORCE
 	@ $(generate_ver); test "x`cat src/version.h 2>/dev/null`" = "x$$ver" || touch .remake-version-h
 src/version.h: .remake-version-h
+	mkdir -p src
 	$(AM_V_GEN) $(generate_ver); echo "$$ver" > $@
 src/main.c: src/version.h
 
 src/builtin.inc: src/builtin.jq
+	mkdir -p src
 	$(AM_V_GEN) sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/^/"/' -e 's/$$/\\n"/' $^ > $@
 src/builtin.o: src/builtin.inc
 
