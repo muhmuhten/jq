@@ -1,4 +1,3 @@
-def debug: debug(["DEBUG:", .]);
 def halt_error: halt_error(5);
 def error: error(.);
 def map(f): [.[] | f];

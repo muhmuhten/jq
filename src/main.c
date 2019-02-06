@@ -243,7 +243,7 @@ static int process(jq_state *jq, jv value, int flags, int dumpopts) {
 
 static void debug_cb(void *data, jv input) {
   int dumpopts = *(int *)data;
-  jv_dumpf(input, stderr, dumpopts & ~(JV_PRINT_PRETTY));
+  jv_dumpf(JV_ARRAY(jv_string("DEBUG:"), input), stderr, dumpopts & ~(JV_PRINT_PRETTY));
   fprintf(stderr, "\n");
 }
 
