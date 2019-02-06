@@ -865,7 +865,7 @@ static jv f_match(jq_state *jq, jv input, jv regex, jv modifiers, jv testmode) {
       if (region->end[0] == region->beg[0]) {
         unsigned long idx;
         const char *fr = (const char*)input_string;
-        for (idx = 0; fr != input_string+region->beg[0]; idx++) {
+        for (idx = 0; fr < input_string+region->beg[0]; idx++) {
           fr += jvp_utf8_decode_length(*fr);
         }
         jv match = jv_object_set(jv_object(), jv_string("offset"), jv_number(idx));
@@ -902,7 +902,7 @@ static jv f_match(jq_state *jq, jv input, jv regex, jv modifiers, jv testmode) {
             cap = jv_object_set(cap, jv_string("string"), jv_null());
           } else {
             fr = input_string;
-            for (idx = 0; fr != input_string+region->beg[i]; idx++) {
+            for (idx = 0; fr < input_string+region->beg[i]; idx++) {
               fr += jvp_utf8_decode_length(*fr);
             }
             cap = jv_object_set(jv_object(), jv_string("offset"), jv_number(idx));
@@ -914,7 +914,7 @@ static jv f_match(jq_state *jq, jv input, jv regex, jv modifiers, jv testmode) {
           continue;
         }
         fr = input_string;
-        for (idx = len = 0; fr != input_string+region->end[i]; len++) {
+        for (idx = len = 0; fr < input_string+region->end[i]; len++) {
           if (fr == input_string+region->beg[i]) idx = len, len=0;
           fr += jvp_utf8_decode_length(*fr);
         }
@@ -935,7 +935,7 @@ static jv f_match(jq_state *jq, jv input, jv regex, jv modifiers, jv testmode) {
       break;
     } else { /* Error */
       UChar ebuf[ONIG_MAX_ERROR_MESSAGE_LEN];
-      onig_error_code_to_str(ebuf, onigret, einfo);
+      onig_error_code_to_str(ebuf, onigret, &einfo);
       jv_free(result);
       result = jv_invalid_with_msg(jv_string_concat(jv_string("Regex failure: "),
             jv_string((char*)ebuf)));
