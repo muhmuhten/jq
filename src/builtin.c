@@ -1830,7 +1830,8 @@ int builtins_bind(jq_state *jq, block* bb) {
     block_free(*bb);
     return nerrors;
   }
-  nerrors = builtins_bind_one(jq, &builtins, jq_builtins);
+  if (!getenv("JQ_SKIP_BUILTINS"))
+    nerrors = builtins_bind_one(jq, &builtins, jq_builtins);
   assert(!nerrors);
   builtins = bind_bytecoded_builtins(builtins);
   builtins = gen_cbinding(function_list, sizeof(function_list)/sizeof(function_list[0]), builtins);
