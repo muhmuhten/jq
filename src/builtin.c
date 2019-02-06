@@ -1821,16 +1821,18 @@ static block gen_builtin_list(block builtins) {
 }
 
 int builtins_bind(jq_state *jq, block* bb) {
-  block builtins;
-  struct locfile* src = locfile_init(jq, "<builtin>", jq_builtins, sizeof(jq_builtins)-1);
-  int nerrors = jq_parse_library(src, &builtins);
-  assert(!nerrors);
-  locfile_free(src);
+  block builtins = gen_noop();
+  if (!getenv("JQ_SKIP_BUILTINS")) {
+    struct locfile* src = locfile_init(jq, "<builtin>", jq_builtins, sizeof(jq_builtins)-1);
+    int nerrors = jq_parse_library(src, &builtins);
+    assert(!nerrors);
+    locfile_free(src);
+  }
 
   builtins = bind_bytecoded_builtins(builtins);
   builtins = gen_cbinding(function_list, sizeof(function_list)/sizeof(function_list[0]), builtins);
   builtins = gen_builtin_list(builtins);
 
   *bb = block_bind_referenced(builtins, *bb, OP_IS_CALL_PSEUDO);
-  return nerrors;
+  return 0;
 }
