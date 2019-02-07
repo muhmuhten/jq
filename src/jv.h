@@ -229,6 +229,7 @@ typedef void (*jv_nomem_handler_f)(void *);
 void jv_nomem_handler(jv_nomem_handler_f, void *);
 
 jv jv_load_file(const char *, int);
+jv jv_write_file(const char *, jv);
 
 typedef struct jv_parser jv_parser;
 jv_parser* jv_parser_new(int);

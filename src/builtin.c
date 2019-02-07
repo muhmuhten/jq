@@ -1177,6 +1177,39 @@ static jv f_stderr(jq_state *jq, jv input) {
   return input;
 }
 
+static jv f_slurpfile(jq_state *jq, jv input, jv rawmode) {
+  int raw = jv_equal(rawmode, jv_true());
+  if (jv_get_kind(input) != JV_KIND_STRING) {
+    jv_free(input);
+    return jv_invalid_with_msg(jv_string("slurpfile input filename must be a string"));
+  }
+  const char *filename = jv_string_value(input);
+  jv result = jv_load_file(filename, raw);
+  jv_free(input);
+  return result;
+}
+
+static jv f_writefile(jq_state *jq, jv a, jv b) {
+  if (jv_get_kind(a) != JV_KIND_STRING || jv_get_kind(b) != JV_KIND_STRING) {
+    return ret_error2(a, b, jv_string("writefile input and filename must be strings"));
+  }
+
+  const char *filename = jv_string_value(b);
+  jv result = jv_write_file(filename, a);
+  jv_free(b);
+  return result;
+}
+
+static jv f_system(jq_state *jq, jv input) {
+  if (jv_get_kind(input) != JV_KIND_STRING) {
+    jv_free(input);
+    return jv_invalid_with_msg(jv_string("system input filename must be a string"));
+  }
+  int status = system(jv_string_value(input));
+  jv_free(input);
+  return jv_number(status);
+}
+
 static jv tm2jv(struct tm *tm) {
   return JV_ARRAY(jv_number(tm->tm_year + 1900),
                   jv_number(tm->tm_mon),
@@ -1665,6 +1698,9 @@ static const struct cfunction function_list[] = {
   {(cfunction_ptr)f_input, "input", 1},
   {(cfunction_ptr)f_debug, "debug", 1},
   {(cfunction_ptr)f_stderr, "stderr", 1},
+  {(cfunction_ptr)f_slurpfile, "_slurpfile", 2},
+  {(cfunction_ptr)f_writefile, "_writefile", 2},
+  {(cfunction_ptr)f_system, "_system", 1},
   {(cfunction_ptr)f_strptime, "strptime", 2},
   {(cfunction_ptr)f_strftime, "strftime", 2},
   {(cfunction_ptr)f_strflocaltime, "strflocaltime", 2},
