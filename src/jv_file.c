@@ -79,3 +79,18 @@ jv jv_load_file(const char* filename, int raw) {
   }
   return data;
 }
+
+jv jv_write_file(const char* filename, jv a) {
+  FILE *file = fopen(filename, "wb");
+  if (!file) {
+    jv_free(a);
+    return jv_invalid_with_msg(jv_string_fmt("Couldn't open \"%s\": %s", filename, strerror(errno)));
+  }
+
+  int len = jv_string_length_bytes(jv_copy(a));
+  if (fwrite(jv_string_value(a), 1, len, file) != len || fclose(file) != 0) {
+    return jv_invalid_with_msg(jv_string_fmt("Couldn't write \"%s\": %s", filename, strerror(errno)));
+  }
+
+  return a;
+}
