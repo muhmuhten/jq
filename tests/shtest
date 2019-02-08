@@ -223,11 +223,6 @@ if [ "$(HOME="$mods" $VALGRIND $Q $JQ -nr fg)" != foobar ]; then
     exit 1
 fi
 
-if [ $(HOME="$mods" $VALGRIND $Q $JQ --debug-dump-disasm -n fg | grep '^[a-z]' | wc -l) -gt 3 ]; then
-    echo "Binding too many defs into program" 1>&2
-    exit 1
-fi
-
 cd "$JQBASEDIR" # so that relative library paths are guaranteed correct
 if ! $VALGRIND $Q $JQ -L ./tests/modules -ne 'import "test_bind_order" as check; check::check==true'; then
     echo "Issue #817 regression?" 1>&2

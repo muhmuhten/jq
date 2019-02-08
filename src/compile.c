@@ -464,28 +464,7 @@ block block_bind_referenced(block binder, block body, int bindflags) {
 }
 
 block block_drop_unreferenced(block body) {
-  inst* curr;
-  block refd = gen_noop();
-  block unrefd = gen_noop();
-  int drop;
-  do {
-    drop = 0;
-    while ((curr = block_take(&body)) && curr->op != TOP) {
-      block b = inst_block(curr);
-      if (block_count_refs(b,refd) + block_count_refs(b,body) == 0) {
-        unrefd = BLOCK(unrefd, b);
-        drop++;
-      } else {
-        refd = BLOCK(refd, b);
-      }
-    }
-    if (curr && curr->op == TOP) {
-      body = BLOCK(inst_block(curr),body);
-    }
-    body = BLOCK(refd, body);
-    refd = gen_noop();
-  } while (drop != 0);
-  block_free(unrefd);
+  /* XXX needs a non-#accidentallyquadratic implementation */
   return body;
 }
 
