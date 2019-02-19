@@ -368,30 +368,6 @@ jv load_module_meta(jq_state *jq, jv mod_relpath) {
   return meta;
 }
 
-static int slurp_lib(jq_state *jq, block* bb) {
-  char* home = getenv("HOME");
-  if (!home) {    // silently ignore no $HOME
-    return 0;
-  }
-
-  int nerrors = 0;
-  jv filename = jv_string_append_str(jv_string(home), "/.jq");
-  jv data = jv_load_file(jv_string_value(filename), 1);
-  if (jv_is_valid(data)) {
-    const char* code = jv_string_value(data);
-    struct locfile* src = locfile_init(jq, jv_string_value(filename), code, strlen(code));
-    block funcs;
-    nerrors = jq_parse_library(src, &funcs);
-    if (nerrors == 0) {
-      *bb = block_bind(funcs, *bb, OP_IS_CALL_PSEUDO);
-    }
-    locfile_free(src);
-  }
-  jv_free(filename);
-  jv_free(data);
-  return nerrors;
-}
-
 int load_program(jq_state *jq, struct locfile* src, block *out_block) {
   int nerrors = 0;
   block program;
@@ -399,6 +375,16 @@ int load_program(jq_state *jq, struct locfile* src, block *out_block) {
   nerrors = jq_parse(src, &program);
   if (nerrors)
     return nerrors;
+
+  char* home = getenv("HOME");
+  if (home) {    // silently ignore no $HOME
+    /* Import ~/.jq as a library named "" found in $HOME */
+    block import = gen_import_meta(gen_import("", NULL, 0),
+        gen_const(JV_OBJECT(
+            jv_string("optional"), jv_true(),
+            jv_string("search"), jv_string(home))));
+    program = BLOCK(import, program);
+  }
 
   nerrors = process_dependencies(jq, jq_get_jq_origin(jq), jq_get_prog_origin(jq), &program, &lib_state);
   block libs = gen_noop();
@@ -411,18 +397,10 @@ int load_program(jq_state *jq, struct locfile* src, block *out_block) {
   }
   free(lib_state.names);
   free(lib_state.defs);
-  if (nerrors) {
+  if (nerrors)
     block_free(program);
-    return nerrors;
-  }
-  program = block_drop_unreferenced(block_join(libs, program));
+  else
+    *out_block = block_drop_unreferenced(block_join(libs, program));
 
-  nerrors = slurp_lib(jq, &program);
-  if (nerrors) {
-    block_free(program);
-    return nerrors;
-  }
-
-  *out_block = program;
   return nerrors;
 }
