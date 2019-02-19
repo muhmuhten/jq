@@ -114,6 +114,7 @@ static jv validate_relpath(jv name) {
       jv_free(name);
       return res;
     }
+    jv_free(x);
   }
   jv_free(components);
   return name;
