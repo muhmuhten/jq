@@ -263,8 +263,10 @@ static int process_dependencies(jq_state *jq, jv jq_origin, jv lib_origin, block
     // XXX ...move the rest of this into a callback.
     if (!jv_is_valid(resolved)) {
       jv_free(as);
-      if (optional)
+      if (optional) {
+        jv_free(resolved);
         continue;
+      }
       jv emsg = jv_invalid_get_msg(resolved);
       jq_report_error(jq, jv_string_fmt("jq: error: %s\n",jv_string_value(emsg)));
       jv_free(emsg);
