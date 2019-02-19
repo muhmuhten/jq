@@ -1782,40 +1782,10 @@ static block gen_builtin_list(block builtins) {
   return BLOCK(builtins, gen_function("builtins", gen_noop(), gen_const(list)));
 }
 
-static int slurp_lib(jq_state *jq, block* bb) {
-  char* home = getenv("HOME");
-  if (!home) {    // silently ignore no $HOME
-    return 0;
-  }
-
-  int nerrors = 0;
-  jv filename = jv_string_append_str(jv_string(home), "/.jq");
-  jv data = jv_load_file(jv_string_value(filename), 1);
-  if (jv_is_valid(data)) {
-    const char* code = jv_string_value(data);
-    struct locfile* src = locfile_init(jq, jv_string_value(filename), code, strlen(code));
-    block funcs;
-    nerrors = jq_parse_library(src, &funcs);
-    if (nerrors == 0) {
-      *bb = block_bind(funcs, *bb, OP_IS_CALL_PSEUDO);
-    }
-    locfile_free(src);
-  }
-  jv_free(filename);
-  jv_free(data);
-  return nerrors;
-}
-
 int builtins_bind(jq_state *jq, block* bb) {
-  int nerrors = slurp_lib(jq, bb);
-  if (nerrors) {
-    block_free(*bb);
-    return nerrors;
-  }
-
   block builtins;
   struct locfile* src = locfile_init(jq, "<builtin>", jq_builtins, sizeof(jq_builtins)-1);
-  nerrors = jq_parse_library(src, &builtins);
+  int nerrors = jq_parse_library(src, &builtins);
   assert(!nerrors);
   locfile_free(src);
 
