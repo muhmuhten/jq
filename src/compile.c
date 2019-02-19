@@ -121,21 +121,6 @@ static inst* block_take(block* b) {
   return i;
 }
 
-static inst* block_take_last(block* b) {
-  inst* i = b->last;
-  if (i == 0)
-    return 0;
-  if (i->prev) {
-    i->prev->next = i->next;
-    b->last = i->prev;
-    i->prev = 0;
-  } else {
-    b->first = 0;
-    b->last = 0;
-  }
-  return i;
-}
-
 block gen_location(location loc, struct locfile* l, block b) {
   for (inst* i = b.first; i; i = i->next) {
     if (i->source.start == UNKNOWN_LOCATION.start &&
@@ -435,22 +420,17 @@ block block_bind_library(block binder, block body, int bindflags, const char *li
   return body; // We don't return a join because we don't want those sticking around...
 }
 
-// Bind binder to body and throw away any defs in binder not referenced
-// (directly or indirectly) from body.
+// Bind binder to body, then throw it away if not referenced.
 block block_bind_referenced(block binder, block body, int bindflags) {
+  assert(block_is_single(binder));
   assert(block_has_only_binders(binder, bindflags));
   bindflags |= OP_HAS_BINDING;
 
-  inst* curr;
-  while ((curr = block_take_last(&binder))) {
-    block b = inst_block(curr);
-    if (block_bind_each(b, body, bindflags) == 0) {
-      block_free(b);
-    } else {
-      body = BLOCK(b, body);
-    }
+  if (block_bind_subblock(binder, body, bindflags, 0) == 0) {
+    block_free(binder);
+  } else {
+    body = BLOCK(binder, body);
   }
-
   return body;
 }
 
