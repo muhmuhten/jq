@@ -121,6 +121,21 @@ static inst* block_take(block* b) {
   return i;
 }
 
+static inst* block_take_last(block* b) {
+  inst* i = b->last;
+  if (i == 0)
+    return 0;
+  if (i->prev) {
+    i->prev->next = i->next;
+    b->last = i->prev;
+    i->prev = 0;
+  } else {
+    b->first = 0;
+    b->last = 0;
+  }
+  return i;
+}
+
 block gen_location(location loc, struct locfile* l, block b) {
   for (inst* i = b.first; i; i = i->next) {
     if (i->source.start == UNKNOWN_LOCATION.start &&
@@ -317,20 +332,6 @@ static int block_count_actuals(block b) {
   return args;
 }
 
-static int block_count_refs(block binder, block body) {
-  int nrefs = 0;
-  for (inst* i = body.first; i; i = i->next) {
-    if (i != binder.first && i->bound_by == binder.first) {
-      nrefs++;
-    }
-    // counting recurses into closures
-    nrefs += block_count_refs(binder, i->subfn);
-    // counting recurses into argument list
-    nrefs += block_count_refs(binder, i->arglist);
-  }
-  return nrefs;
-}
-
 static int block_bind_subblock_inner(int* any_unbound, block binder, block body, int bindflags, int break_distance) {
   assert(block_is_single(binder));
   assert((opcode_describe(binder.first->op)->flags & bindflags) == (bindflags & ~OP_BIND_WILDCARD));
@@ -439,32 +440,18 @@ block block_bind_library(block binder, block body, int bindflags, const char *li
 block block_bind_referenced(block binder, block body, int bindflags) {
   assert(block_has_only_binders(binder, bindflags));
   bindflags |= OP_HAS_BINDING;
-  block refd = gen_noop();
-  block unrefd = gen_noop();
-  int nrefs;
-  for (int last_kept = 0, kept = 0; ; ) {
-    for (inst* curr; (curr = block_take(&binder));) {
-      block b = inst_block(curr);
-      nrefs = block_bind_each(b, body, bindflags);
-      // Check if this binder is referenced from any of the ones we
-      // already know are referenced by body.
-      nrefs += block_count_refs(b, refd);
-      nrefs += block_count_refs(b, body);
-      if (nrefs) {
-        refd = BLOCK(refd, b);
-        kept++;
-      } else {
-        unrefd = BLOCK(unrefd, b);
-      }
+
+  inst* curr;
+  while ((curr = block_take_last(&binder))) {
+    block b = inst_block(curr);
+    if (block_bind_each(b, body, bindflags) == 0) {
+      block_free(b);
+    } else {
+      body = BLOCK(b, body);
     }
-    if (kept == last_kept)
-      break;
-    last_kept = kept;
-    binder = unrefd;
-    unrefd = gen_noop();
   }
-  block_free(unrefd);
-  return block_join(refd, body);
+
+  return body;
 }
 
 static void block_mark_referenced(block body) {
