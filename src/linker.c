@@ -411,13 +411,9 @@ int load_program(jq_state *jq, struct locfile* src, block *out_block) {
   if (nerrors)
     return nerrors;
 
-  char* home = getenv("HOME");
-  if (home) {    // silently ignore no $HOME
-    /* Import ~/.jq as a library named "" found in $HOME */
-    block import = gen_import_meta(gen_import("", NULL, 0),
-        gen_const(JV_OBJECT(
-            jv_string("optional"), jv_true(),
-            jv_string("search"), jv_string(home))));
+  {
+    block import = gen_import_meta(gen_import("main", NULL, 0),
+        gen_const(JV_OBJECT(jv_string("optional"), jv_true())));
     program = BLOCK(import, program);
   }
 
