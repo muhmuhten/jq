@@ -239,7 +239,11 @@ static int process_dependencies(jq_state *jq, jv jq_origin, jv lib_origin, jv de
   block bk = *src_block;
   int nerrors = 0;
 
-  jv_array_foreach(deps, i, dep) {
+  // XXX This is a backward jv_array_foreach because bindings go in reverse
+  for (int i = jv_array_length(jv_copy(deps)); i > 0; ) {
+    i--;
+    jv dep = jv_array_get(jv_copy(deps), i);
+
     const char *as_str = NULL;
     int is_data = jv_get_kind(jv_object_get(jv_copy(dep), jv_string("is_data"))) == JV_KIND_TRUE;
     const char *ext_str = is_data ? ".json" : ".jq";
