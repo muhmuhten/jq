@@ -44,11 +44,15 @@ break
 break requires a label
 
 %%FAIL
-. ..
+.8
 try .["
 
 %%FAIL
-. x ..
+.x y
+try .["
+
+%%FAIL
+. x y
 try .["
 
 %%FAIL

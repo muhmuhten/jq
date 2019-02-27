@@ -663,6 +663,11 @@ Term FIELD %prec NONOPT {
 FIELD %prec NONOPT {
   $$ = gen_index(gen_noop(), gen_const($1));
 } |
+FIELD error {
+  jv_free($1);
+  FAIL(@$, "try .[\"field\"] instead of .field for unusually named fields");
+  $$ = gen_noop();
+} |
 Term '.' String %prec NONOPT {
   $$ = gen_index($1, $3);
 } |
@@ -708,6 +713,11 @@ Term '[' Exp ':' ']' %prec NONOPT {
 } |
 Term '[' ':' Exp ']' %prec NONOPT {
   $$ = gen_slice_index($1, gen_const(jv_null()), $4, INDEX);
+} |
+Term '.' '[' error {
+  FAIL(@$, "try exp[index] instead of exp.[index]");
+  $$ = gen_noop();
+  block_free($1);
 } |
 LITERAL {
   $$ = gen_const($1);
