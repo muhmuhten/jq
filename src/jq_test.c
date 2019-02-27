@@ -97,7 +97,7 @@ static void run_jq_tests(jv lib_dirs, int verbose, FILE *testdata) {
         invalid++;
         continue;
       }
-      if (check_msg && strcmp(buf, err_msg.buf) != 0) {
+      if (check_msg && !strstr(err_msg.buf, buf)) {
         printf("*** Erroneous test program failed with wrong message (%s) at line %u: %s\n", err_msg.buf, lineno, prog);
         invalid++;
       } else {

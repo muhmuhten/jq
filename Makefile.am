@@ -128,7 +128,7 @@ endif
 
 ### Tests (make check)
 
-TESTS = tests/optionaltest tests/mantest tests/jqtest tests/onigtest tests/shtest tests/utf8test tests/base64test
+TESTS = tests/optionaltest tests/mantest tests/jqtest tests/onigtest tests/parsertest tests/shtest tests/utf8test tests/base64test
 TESTS_ENVIRONMENT = NO_VALGRIND=$(NO_VALGRIND)
 
 
@@ -182,8 +182,8 @@ EXTRA_DIST = $(DOC_FILES) $(man_MANS) $(TESTS) $(TEST_LOG_COMPILER)     \
         tests/modules/test_bind_order0.jq                               \
         tests/modules/test_bind_order1.jq                               \
         tests/modules/test_bind_order2.jq tests/onig.supp               \
-        tests/onig.test tests/optional.test tests/setup                 \
-        tests/torture/input0.json tests/utf8-truncate.jq
+        tests/onig.test tests/optional.test tests/parser.test           \
+        tests/setup tests/torture/input0.json tests/utf8-truncate.jq
 
 # README.md is expected in Github projects, good stuff in it, so we'll
 # distribute it and install it with the package in the doc directory.

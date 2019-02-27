@@ -1,0 +1,104 @@
+# Tests are groups of three lines: program, input, expected output
+# Blank lines and lines starting with # are ignored
+
+# Check that all those friendly error messages actually get used
+
+%%FAIL
+'
+shell quoting issues?
+
+%%FAIL
+module .;
+Module metadata must be constant at
+
+%%FAIL
+if . then
+unterminated 'if'
+
+%%FAIL
+try . catch
+unterminated 'try'
+
+%%FAIL
+1/0
+Division by zero
+
+%%FAIL
+1%0
+Remainder by zero
+
+%%FAIL
+include "x" .;
+Module metadata must be constant at
+
+%%FAIL
+include "x" [];
+Module metadata must be an object at
+
+%%FAIL
+include "\(.)";
+Import path must be constant at
+
+%%FAIL
+break
+break requires a label
+
+%%FAIL
+. ..
+try .["
+
+%%FAIL
+. x ..
+try .["
+
+%%FAIL
+. as {(1):$x}|.
+Cannot use number (1) as object key at
+
+%%FAIL
+. as {.:$x}|.
+May need parentheses around object key
+
+%%FAIL
+{(3):.}
+Cannot use number (3) as object key at
+
+%%FAIL
+{.:.}
+May need parentheses around object key
+
+.
+1
+1
+
+import "a" as a; import "a" as a {}; include "a"; include "a" {}; import "data" as $d {}; import "data" as $d; .
+3
+3
+
+%%FAIL
+include "a" as a;
+unexpected as
+
+%%FAIL
+import "a";
+unexpected ';', expecting as
+
+module 2; .
+4
+4
+
+%%FAIL
+module 1; module 2;
+unexpected module
+
+def x: 1; def x: 2;
+5
+5
+
+def x: 1; def x: 1; def x: 1; def x: 1; def x: 1; def x: 1; def x: 1; def x: 1; def x: 1; def x: 1; def x: 1; def x: 1; def x: 1; def x: 1; def x: 1; def x: 1;
+null
+null
+
+module 2;
+{"a":1,"b":[]}
+{"a":1,"b":[]}
