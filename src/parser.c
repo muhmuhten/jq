@@ -2685,7 +2685,7 @@ yyreduce:
 #line 458 "src/parser.y" /* yacc.c:1648  */
     {
   (yyval.blk) = gen_binop((yyvsp[-2].blk), (yyvsp[0].blk), '%');
-  if (block_is_const_inf((yyval.blk)))
+  if (block_is_const_zero((yyvsp[0].blk)))
     FAIL((yyloc), "Remainder by zero?");
 }
 #line 2692 "src/parser.c" /* yacc.c:1648  */

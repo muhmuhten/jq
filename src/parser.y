@@ -457,7 +457,7 @@ Exp '/' Exp {
 
 Exp '%' Exp {
   $$ = gen_binop($1, $3, '%');
-  if (block_is_const_inf($$))
+  if (block_is_const_zero($3))
     FAIL(@$, "Remainder by zero?");
 } |
 
